@@ -1,4 +1,6 @@
 youtube-html-playlister
 =======================
 
-An HTML app to manage playlists of YouTube videos
+An HTML app to manage playlists of YouTube videos.
+
+http://babazka.github.io/youtube-html-playlister/
