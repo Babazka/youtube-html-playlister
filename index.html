@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--
+ https://gdata.youtube.com/feeds/api/videos/lPM2NLRdtOg?v=2&alt=json
+ https://gdata.youtube.com/feeds/api/playlists/PL7C183EA1B833B690?v=2&alt=json
+-->
+<html>
+<head>
+    <title>YouTube playlister</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+</head>
+<body>
+
+<style>
+    body {
+        font-family: sans-serif;
+        font-size: 12px;
+    }
+    table.playertable td {
+        vertical-align: top;
+        border-collapse: collapse;
+        border: solid 1px #aaa;
+    }
+    a.jsa {
+        color: blue;
+    }
+</style>
+
+<table width="100%" class="playertable">
+    <tr>
+        <td colspan="4">
+            <div id="alert_div"></div>
+            <div>
+                Import video by url:
+                <input type="text" style="width: 500px" id="import_video_by_url_input" value="https://www.youtube.com/watch?v=9bZkp7q19f0"/>
+                <button id="do_import_video_by_url">Import</button>
+            </div>
+            <div>
+                Import playlist by url:
+                <input type="text" style="width: 500px" id="import_playlist_by_url_input" value="https://www.youtube.com/playlist?list=PL7C183EA1B833B690"/>
+                <button id="do_import_playlist_by_url">Import</button>
+            </div>
+            <div>
+                <button id="refresh_view_btn">Refresh view</button>
+                <!--<button id="undo">Undo changes</button>-->
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td width="25%">
+            <div class="th">Playlists</div>
+            <div>
+                <button id="add_playlist">Add</button>
+                <button id="del_current_playlist">Del</button>
+            </div>
+            <div id="playlist_collection">(list)</div>
+        </td>
+        <td width="25%">
+            <div class="th">Current playlist</div>
+            <div>
+                <button id="playlist_to_now_playing">To Now Playing</button>
+            </div>
+            <div id="playlist_contents">(list)</div>
+        </td>
+        <td width="25%">
+            <div class="th">Now playing</div>
+            <div>
+                <button id="clear_now_playing">Clear</button>
+                <button id="play_now_playing">Play</button>
+                <label for="rd_mode_list"><input type="radio" id="rd_mode_list" group="rd_mode" name="rd_mode" value="list" checked/>List</label>
+                <label for="rd_mode_loop"><input type="radio" id="rd_mode_loop" group="rd_mode" name="rd_mode" value="loop"/>Loop</label>
+                <button id="save_now_playing_as">Save as</button>
+            </div>
+            <div id="now_playing">(list)</div>
+        </td>
+        <td width="210px">
+            <div class="th">Player</div>
+            <div id="ytplayer"></div>
+        </td>
+    </tr>
+</table>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script>
+  // Load the IFrame Player API code asynchronously.
+  var tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/player_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  function stateChangeHandler(event) {
+      if (event.data === YT.PlayerState.ENDED) {
+          var next_video_id = window.playerbkend.getNextVideo();
+          window.ytplayer.loadVideoById(next_video_id, 0);
+          /*
+          if (next_action.type == 'video') {
+              window.ytplayer.loadVideoById(next_action.video_id, 0);
+          } else if (next_action.type == 'loop') {
+              window.ytplayer.seekTo(0);
+          }
+          */
+      }
+  }
+
+  function onYouTubePlayerAPIReady() {
+      window.ytplayer = new YT.Player('ytplayer', {
+          height: '200',
+          width: '300',
+          videoId: '9bZkp7q19f0',
+          playerVars: {
+              'autoplay': 0,
+              'enablejsapi': 1,
+              'loop': 0
+          },
+          events: {
+              onStateChange: stateChangeHandler
+          }
+      });
+  }
+</script>
+<script src="tube.js"></script>
+<script>
+    window.playerbkend = new MyYoutubePlayer();
+</script>
+</body>
+</html>
