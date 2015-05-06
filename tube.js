@@ -26,6 +26,54 @@ function MyYoutubePlayer() {
         }
         this.updateView();
     };
+    this.stashUrl = 'http://a-kr.ru/stash/?key=tube';
+    this.stash = function() {
+        var that = this;
+        var dump = localStorage.getItem('my_youtube_data_context');
+        $.ajax(this.stashUrl, {
+            success: function() {
+                alert("Stashed at: " + that.stashUrl);
+            },
+            error: function(xhr, httpStatus) {
+                alert("Stash error: " + httpStatus);
+            },
+            data: dump,
+            headers: {
+                'Content-Type': 'text/plain'
+            },
+            method: 'POST'
+        });
+    };
+    this.stashPop = function() {
+        var that = this;
+        var dump = localStorage.getItem('my_youtube_data_context');
+        localStorage.setItem('my_youtube_data_context_before_stash_pop', dump);
+        $.ajax(this.stashUrl, {
+            success: function(data) {
+                if (!!data) {
+                    localStorage.setItem('my_youtube_data_context', data);
+                    that.localLoad();
+                    alert("Stash restored");
+                } else {
+                    alert("Empty data restored from " + that.stashUrl);
+                }
+            },
+            error: function(xhr, httpStatus) {
+                alert("Stash pop error: " + httpStatus);
+            },
+            method: 'GET'
+        });
+    };
+    this.undoStashPop = function() {
+        var dump = localStorage.getItem('my_youtube_data_context_before_stash_pop');
+        if (!!dump) {
+            localStorage.setItem('my_youtube_data_context', dump);
+            that.localLoad();
+            alert("Stash pop rolled back");
+        } else {
+            alert("No saved data before stash pop");
+        }
+    };
     this.undoChanges = function() {
         var dump = this.undo_context;
         if (!!dump) {
@@ -50,6 +98,16 @@ function MyYoutubePlayer() {
             var video = dict[id_order[i]];
             list.push(video);
         }
+    };
+    this.shuffleNowPlaying = function() {
+        var new_now_playing = [];
+        while (this.now_playing_list.length > 0) {
+            var i = Math.trunc(Math.random() * this.now_playing_list.length);
+            new_now_playing.push(this.now_playing_list[i]);
+            this.now_playing_list.splice(i, 1);
+        }
+        this.now_playing_list = new_now_playing;
+        this.updateView();
     };
 
     this.createPlaylist = function(title, videos) {
@@ -136,6 +194,7 @@ function MyYoutubePlayer() {
                 this.now_playing_video_id = this.now_playing_list[j].id;
                 var new_el_id = '#now_video_' + j;
                 $(new_el_id).attr('checked', 'checked');
+                $(new_el_id).prop('checked', true);
                 return this.now_playing_video_id;
             }
         }
@@ -438,6 +497,15 @@ function MyYoutubePlayer() {
         $('#refresh_view_btn').click(function() {
             that.updateView();
         });
+        $('#stash_btn').click(function() {
+            that.stash();
+        });
+        $('#stash_pop_btn').click(function() {
+            that.stashPop();
+        });
+        $('#undo_stash_pop').click(function() {
+            that.undoStashPop();
+        });
         $('#clear_now_playing').click(function() {
             that.now_playing_list = [];
             that.localSave();
@@ -503,6 +571,10 @@ function MyYoutubePlayer() {
             }
         });
         $('#now_playing').disableSelection();
+
+        $('#btn_shuffle').click(function() {
+            that.shuffleNowPlaying();
+        });
 
         $('#playlist_contents').sortable({
             stop: function() {
