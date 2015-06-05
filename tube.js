@@ -428,33 +428,56 @@ function MyYoutubePlayer() {
             that.alert('URL does not look like YouTube video url');
             return;
         }
-        $.get("https://gdata.youtube.com/feeds/api/videos/" + video_id + "?v=2&alt=json", function(data) {
+        $.get("https://www.googleapis.com/youtube/v3/videos?part=snippet&id=" + video_id + "&key=AIzaSyABdTdueRpC67F1aplCb1kccFhevFScI48", function(data) {
+            if (data['items'].length == 0) {
+                that.alert('Video not found');
+                return;
+            }
             var video = {
                 'id': video_id,
-                'title': data['entry']['title']['$t']
+                'title': data['items'][0]['snippet']['title']
             };
             that.addToCurrentPlaylist(video);
             that.addToNowPlaying(video);
         });
     };
 
-    this.importPlaylistByUrl = function(url, offset) {
-        var page_offset = offset || 1;
-        var per_page = 50;
+    this.importPlaylistByUrl = function(url, title, page_token) {
         var playlist_id = this.parseUrlForPlaylistId(url);
         if (!playlist_id) {
             that.alert('URL does not seem to contain YouTube playlist id');
             return;
         }
-        $.get("https://gdata.youtube.com/feeds/api/playlists/" + playlist_id + "?v=2&alt=json&start-index=" + page_offset + "&max-results=" + per_page, function(data) {
+        var apiurl;
+
+        if (!title) {
+            $.get("https://www.googleapis.com/youtube/v3/playlists?part=snippet&id=" + playlist_id + "&key=AIzaSyABdTdueRpC67F1aplCb1kccFhevFScI48", function(data) {
+                if (data['items'].length == 0) {
+                    that.alert('Playlist not found');
+                    return;
+                };
+                var title = data['items'][0]['snippet']['title'];
+                if (!title) {
+                    that.alert('Cannot determine playlist title');
+                    return;
+                }
+                that.importPlaylistByUrl(url, title);
+            });
+            return;
+        }
+
+        apiurl = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=" + playlist_id + "&key=AIzaSyABdTdueRpC67F1aplCb1kccFhevFScI48";
+        if (!!page_token) {
+            apiurl += "&pageToken=" + page_token;
+        }
+        $.get(apiurl, function(data) {
             var playlist = {
-                'title': data['feed']['title']['$t'],
+                'title': title,
                 'videos': []
             };
-            var total = data['feed']['openSearch$totalResults']['$t'];
-            for (var i = 0; i < data['feed']['entry'].length; i++) {
-                var entry = data['feed']['entry'][i];
-                var video_id = that.parseUrlForVideoId(entry['link'][0]['href']);
+            for (var i = 0; i < data['items'].length; i++) {
+                var entry = data['items'][i]['snippet'];
+                var video_id = entry['resourceId']['videoId'];
                 if (!video_id) {
                     console.log('cannot extract video_id from this thing:');
                     console.log(entry);
@@ -462,23 +485,20 @@ function MyYoutubePlayer() {
                 }
                 var video = {
                     'id': video_id,
-                    'title': entry['title']['$t']
+                    'title': entry['title']
                 };
                 playlist.videos.push(video);
             }
 
-            if (total <= per_page) {
+            var next_page_token = data['nextPageToken'];
+            if (!page_token) {
                 that.createPlaylist(playlist.title, playlist.videos);
             } else {
-                if (page_offset == 1) {
-                    that.createPlaylist(playlist.title, playlist.videos);
-                } else {
-                    that.appendToCurrentPlaylist(playlist.videos);
-                }
-                if (total >= page_offset + per_page - 1) {
-                    that.alert('Loading next page of API data with offset ' + (page_offset + per_page) + '...');
-                    that.importPlaylistByUrl(url, page_offset + per_page);
-                }
+                that.appendToCurrentPlaylist(playlist.videos);
+            }
+
+            if (!!next_page_token) {
+                that.importPlaylistByUrl(url, title, next_page_token);
             }
         });
     };
