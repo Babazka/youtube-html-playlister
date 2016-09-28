@@ -80,6 +80,9 @@
         <td width="210px">
             <div class="th">Player</div>
             <div id="ytplayer"></div>
+            <div>
+                <audio id="auplayer" style="width: 100%" controls></audio>
+            </div>
         </td>
     </tr>
 </table>
@@ -96,7 +99,7 @@
   function stateChangeHandler(event) {
       if (event.data === YT.PlayerState.ENDED) {
           var next_video_id = window.playerbkend.getNextVideo();
-          window.ytplayer.loadVideoById(next_video_id, 0);
+          window.playerbkend.setPlayerToNextTrack(next_video_id);
           /*
           if (next_action.type == 'video') {
               window.ytplayer.loadVideoById(next_action.video_id, 0);
@@ -122,6 +125,13 @@
           }
       });
   }
+</script>
+<script>
+    window.auplayer = $('#auplayer')[0];
+    window.auplayer.addEventListener("ended", function(e) {
+        var next_video_id = window.playerbkend.getNextVideo();
+        window.playerbkend.setPlayerToNextTrack(next_video_id);
+    }, false);
 </script>
 <script src="tube.js"></script>
 <script>

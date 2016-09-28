@@ -173,7 +173,18 @@ function MyYoutubePlayer() {
         } else {
             $('input.now_playing_radio[value="' + this.now_playing_video_id + '"]').attr('checked', 'checked');
         }
-        window.ytplayer.loadVideoById(this.now_playing_video_id, 0);
+        this.setPlayerToNextTrack(this.now_playing_video_id);
+    };
+
+    this.setPlayerToNextTrack = function(video_id) {
+        if (video_id.endsWith('.mp3')) {
+            window.ytplayer.stopVideo();
+            window.auplayer.src = video_id;
+            window.auplayer.play();
+        } else {
+            window.auplayer.pause();
+            window.ytplayer.loadVideoById(video_id, 0);
+        }
     };
 
     this.getNextVideo = function() {
@@ -423,6 +434,15 @@ function MyYoutubePlayer() {
     };
 
     this.importVideoByUrl = function(url) {
+        if (url.endsWith('.mp3')) {
+            var video = {
+                'id': url,
+                'title': url.match(/[^\/]+$/)[0]
+            };
+            that.addToCurrentPlaylist(video);
+            that.addToNowPlaying(video);
+            return;
+        }
         var video_id = this.parseUrlForVideoId(url);
         if (!video_id) {
             that.alert('URL does not look like YouTube video url');
