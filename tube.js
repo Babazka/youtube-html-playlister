@@ -26,13 +26,29 @@ function MyYoutubePlayer() {
         }
         this.updateView();
     };
+
     this.stashUrl = 'http://a-kr.ru/stash/?key=tube';
+
+    this.mustGetStashKeySuffix = function() {
+        var suffix = localStorage.getItem('my_youtube_stash_suffix');
+        if (!suffix) {
+            suffix = prompt("Please enter your email", "john.doe@gmail.com");
+            if (!suffix) {
+                throw 'empty email';
+            }
+            localStorage.setItem('my_youtube_stash_suffix', suffix)
+        }
+        return encodeURIComponent(suffix);
+    };
+
     this.stash = function() {
         var that = this;
+        var stashKeySuffix = that.mustGetStashKeySuffix();
+        var url = that.stashUrl + stashKeySuffix;
         var dump = localStorage.getItem('my_youtube_data_context');
-        $.ajax(this.stashUrl, {
+        $.ajax(url, {
             success: function() {
-                alert("Stashed at: " + that.stashUrl);
+                alert("Stashed at: " + url);
             },
             error: function(xhr, httpStatus) {
                 alert("Stash error: " + httpStatus);
@@ -47,15 +63,17 @@ function MyYoutubePlayer() {
     this.stashPop = function() {
         var that = this;
         var dump = localStorage.getItem('my_youtube_data_context');
+        var stashKeySuffix = that.mustGetStashKeySuffix();
+        var url = that.stashUrl + stashKeySuffix;
         localStorage.setItem('my_youtube_data_context_before_stash_pop', dump);
-        $.ajax(this.stashUrl, {
+        $.ajax(url, {
             success: function(data) {
                 if (!!data) {
                     localStorage.setItem('my_youtube_data_context', data);
                     that.localLoad();
                     alert("Stash restored");
                 } else {
-                    alert("Empty data restored from " + that.stashUrl);
+                    alert("Empty data restored from " + url);
                 }
             },
             error: function(xhr, httpStatus) {
