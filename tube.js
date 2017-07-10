@@ -386,7 +386,7 @@ function MyYoutubePlayer() {
             }
             var el = '<label class="collection-item" for="' + id + '">';
             el += '<input type="radio" group="p_collection" name="p_collection" value="' +
-                playlist.title.replace(/"/g, '\\"') + '" id="' + id +'" ' + checked + '>';
+                playlist.title.replace(/"/g, '&quot;') + '" id="' + id +'" ' + checked + '>';
             el += playlist.title +
                 ' (' + playlist.videos.length + ')</label><br/>';
             html += el;
@@ -580,6 +580,7 @@ function MyYoutubePlayer() {
         });
         $('#playlist_collection').on('click', '.collection-item', function() {
             var selected_playlist = $('.collection-item input[type="radio"]:checked').val();
+            selected_playlist = selected_playlist.replace(/&quot;/g, '"');
             that.current_playlist = selected_playlist;
             that.updateView();
         });
