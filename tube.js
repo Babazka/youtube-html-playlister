@@ -386,7 +386,7 @@ function MyYoutubePlayer() {
             }
             var el = '<label class="collection-item" for="' + id + '">';
             el += '<input type="radio" group="p_collection" name="p_collection" value="' +
-                playlist.title + '" id="' + id +'" ' + checked + '>';
+                playlist.title.replace(/"/g, '\\"') + '" id="' + id +'" ' + checked + '>';
             el += playlist.title +
                 ' (' + playlist.videos.length + ')</label><br/>';
             html += el;
