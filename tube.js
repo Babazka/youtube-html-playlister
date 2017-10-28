@@ -194,15 +194,46 @@ function MyYoutubePlayer() {
         this.setPlayerToNextTrack(this.now_playing_video_id);
     };
 
+    this.doPlayMp3 = function(file_url) {
+        window.ytplayer.stopVideo();
+        window.auplayer.src = file_url;
+        window.auplayer.play();
+    };
+
+    this.doPlayYoutube = function(video_id) {
+        window.auplayer.pause();
+        window.ytplayer.loadVideoById(video_id, 0);
+    };
+
     this.setPlayerToNextTrack = function(video_id) {
+        var ytCacheUrl = localStorage.getItem("yt_cache_url");
         if (video_id.endsWith('.mp3')) {
-            window.ytplayer.stopVideo();
-            window.auplayer.src = video_id;
-            window.auplayer.play();
+            this.doPlayMp3(video_id);
         } else {
-            window.auplayer.pause();
-            window.ytplayer.loadVideoById(video_id, 0);
+            if (!!ytCacheUrl) {
+                this.tryPlayFromCache(video_id);
+            } else {
+                this.doPlayYoutube(video_id);
+            }
         }
+    };
+
+    this.tryPlayFromCache = function(video_id) {
+        var ytCacheUrl = localStorage.getItem("yt_cache_url");
+        var cachedUrl = ytCacheUrl + video_id + ".mp3";
+        $.ajax({
+            url : cachedUrl,
+            timeout: 1000,
+            type : 'HEAD',
+            success : function(){
+                console.log("Playing " + video_id + " from cache: " + cachedUrl);
+                that.doPlayMp3(cachedUrl);
+            },
+            error : function(){
+                console.log("Could not find " + video_id + " in cache: " + cachedUrl);
+                that.doPlayYoutube(video_id);
+            }
+        });
     };
 
     this.getNextVideo = function() {
