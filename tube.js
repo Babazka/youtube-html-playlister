@@ -497,18 +497,12 @@ function MyYoutubePlayer() {
             that.alert('URL does not look like YouTube video url');
             return;
         }
-        $.get("https://www.googleapis.com/youtube/v3/videos?part=snippet&id=" + video_id + "&key=AIzaSyABdTdueRpC67F1aplCb1kccFhevFScI48", function(data) {
-            if (data['items'].length == 0) {
-                that.alert('Video not found');
-                return;
-            }
-            var video = {
-                'id': video_id,
-                'title': data['items'][0]['snippet']['title']
-            };
-            that.addToCurrentPlaylist(video);
-            that.addToNowPlaying(video);
-        });
+        var video = {
+            'id': video_id,
+            'title': prompt('input video title'),
+        };
+        that.addToCurrentPlaylist(video);
+        that.addToNowPlaying(video);
     };
 
     this.importPlaylistByUrl = function(url, title, page_token) {
